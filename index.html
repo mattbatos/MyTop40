@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyTop40</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="app__header">
+      <h1>MyTop40</h1>
+      <p class="app__tagline">Build your personal Top 40 by making quick head-to-head choices.</p>
+    </header>
+
+    <section class="panel" id="input-panel">
+      <h2>Enter up to 40 songs</h2>
+      <p>List one song per line. You can include the artist name to keep track of duplicates.</p>
+      <textarea id="song-input" rows="12" placeholder="Song Title - Artist"></textarea>
+      <div class="panel__actions">
+        <button id="start-button" class="button">Start Ranking</button>
+        <p class="panel__hint" id="input-hint">You can add between 1 and 40 songs.</p>
+      </div>
+    </section>
+
+    <section class="panel panel--hidden" id="ranking-panel">
+      <div class="ranking__status">
+        <h2>Which song is better?</h2>
+        <p id="progress-text"></p>
+      </div>
+      <div class="choice" id="choice-container">
+        <button class="choice__option" id="option-left"></button>
+        <span class="choice__label">vs</span>
+        <button class="choice__option" id="option-right"></button>
+      </div>
+      <div class="panel__actions">
+        <button id="skip-button" class="button button--subtle">Start Over</button>
+      </div>
+    </section>
+
+    <section class="panel panel--hidden" id="results-panel">
+      <h2>Your Top 40</h2>
+      <ol id="results-list"></ol>
+      <div class="panel__actions">
+        <button id="restart-button" class="button">Create Another List</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app__footer">
+    <p>Built with a simple binary sort powered by your choices.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

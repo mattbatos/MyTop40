@@ -76,6 +76,73 @@ textarea:focus {
   border-color: var(--accent);
 }
 
+.song-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.song-form__fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.song-form__fields input {
+  flex: 1;
+  min-width: 220px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+}
+
+.song-form__fields input:focus {
+  outline: 3px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-color: var(--accent);
+}
+
+.song-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.song-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  background: rgba(79, 70, 229, 0.08);
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.song-list__name {
+  flex: 1;
+  font-weight: 500;
+}
+
+.song-list__remove {
+  background: transparent;
+  border: none;
+  color: rgba(28, 31, 51, 0.7);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  transition: background 120ms ease;
+}
+
+.song-list__remove:hover,
+.song-list__remove:focus-visible {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+}
+
 .button {
   align-self: start;
   background: var(--accent);
@@ -88,6 +155,12 @@ textarea:focus {
   cursor: pointer;
   transition: transform 120ms ease, box-shadow 120ms ease;
   box-shadow: 0 6px 18px rgba(79, 70, 229, 0.3);
+}
+
+.button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .button:active {
@@ -144,6 +217,7 @@ textarea:focus {
   font-size: clamp(1rem, 2.2vw, 1.2rem);
   line-height: 1.4;
   font-weight: 600;
+  color: var(--text);
   text-align: center;
   cursor: pointer;
   transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;

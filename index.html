@@ -15,11 +15,17 @@
 
     <section class="panel" id="input-panel">
       <h2>Enter up to 40 songs</h2>
-      <p>List one song per line. You can include the artist name to keep track of duplicates.</p>
-      <textarea id="song-input" rows="12" placeholder="Song Title - Artist"></textarea>
+      <p>Add songs one at a time. Include the artist name if you want to spot duplicates.</p>
+      <form id="song-form" class="song-form">
+        <div class="song-form__fields">
+          <input id="song-input" type="text" placeholder="Song Title - Artist" autocomplete="off" />
+          <button id="add-button" type="submit" class="button">Add Song</button>
+        </div>
+      </form>
+      <ul id="song-list" class="song-list"></ul>
       <div class="panel__actions">
-        <button id="start-button" class="button">Start Ranking</button>
-        <p class="panel__hint" id="input-hint">You can add between 1 and 40 songs.</p>
+        <button id="start-button" class="button" disabled>Start Ranking</button>
+        <p class="panel__hint" id="input-hint">Added 0 of 40 songs.</p>
       </div>
     </section>
 

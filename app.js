@@ -1,5 +1,8 @@
 const songInput = document.getElementById('song-input');
+const songForm = document.getElementById('song-form');
+const addButton = document.getElementById('add-button');
 const startButton = document.getElementById('start-button');
+const songList = document.getElementById('song-list');
 const inputHint = document.getElementById('input-hint');
 const inputPanel = document.getElementById('input-panel');
 const rankingPanel = document.getElementById('ranking-panel');
@@ -11,16 +14,69 @@ const resultsList = document.getElementById('results-list');
 const restartButton = document.getElementById('restart-button');
 const skipButton = document.getElementById('skip-button');
 
+const MAX_SONGS = 40;
+
 let songs = [];
 let rankedSongs = [];
 let currentIndex = 0;
 let compareState = null;
 
-function parseSongs(raw) {
-  return raw
-    .split('\n')
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0);
+function syncInputState(customHint) {
+  inputHint.textContent = customHint ?? `Added ${songs.length} of ${MAX_SONGS} songs.`;
+  startButton.disabled = songs.length === 0;
+  addButton.disabled = songs.length >= MAX_SONGS;
+}
+
+function renderSongList() {
+  songList.innerHTML = '';
+
+  songs.forEach((song, index) => {
+    const li = document.createElement('li');
+    li.className = 'song-list__item';
+
+    const name = document.createElement('span');
+    name.className = 'song-list__name';
+    name.textContent = song;
+
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.className = 'song-list__remove';
+    removeButton.textContent = 'Remove';
+    removeButton.addEventListener('click', () => {
+      songs.splice(index, 1);
+      renderSongList();
+      syncInputState();
+      songInput.focus();
+    });
+
+    li.appendChild(name);
+    li.appendChild(removeButton);
+    songList.appendChild(li);
+  });
+}
+
+function handleAddSong(event) {
+  event.preventDefault();
+
+  const entry = songInput.value.trim();
+
+  if (entry.length === 0) {
+    syncInputState('Enter a song before adding.');
+    songInput.focus();
+    return;
+  }
+
+  if (songs.length >= MAX_SONGS) {
+    syncInputState('You can only rank up to 40 songs at a time.');
+    songInput.focus();
+    return;
+  }
+
+  songs.push(entry);
+  songInput.value = '';
+  renderSongList();
+  syncInputState();
+  songInput.focus();
 }
 
 function resetApp() {
@@ -29,7 +85,8 @@ function resetApp() {
   rankedSongs = [];
   currentIndex = 0;
   compareState = null;
-  inputHint.textContent = 'You can add between 1 and 40 songs.';
+  renderSongList();
+  syncInputState();
   showPanel('input');
   songInput.focus();
 }
@@ -108,19 +165,11 @@ function showResults() {
 }
 
 startButton.addEventListener('click', () => {
-  const parsed = parseSongs(songInput.value);
-
-  if (parsed.length === 0) {
-    inputHint.textContent = 'Please enter at least one song to begin.';
+  if (songs.length === 0) {
+    syncInputState('Add at least one song to begin.');
     return;
   }
 
-  if (parsed.length > 40) {
-    inputHint.textContent = 'You can only rank up to 40 songs at a time.';
-    return;
-  }
-
-  songs = parsed;
   rankedSongs = [songs[0]];
   currentIndex = 1;
 
@@ -139,6 +188,7 @@ startButton.addEventListener('click', () => {
 optionLeft.addEventListener('click', () => handleChoice(true));
 optionRight.addEventListener('click', () => handleChoice(false));
 
+songForm.addEventListener('submit', handleAddSong);
 restartButton.addEventListener('click', resetApp);
 skipButton.addEventListener('click', resetApp);
 

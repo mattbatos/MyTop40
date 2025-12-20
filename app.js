@@ -1,6 +1,9 @@
 const songTitleInput = document.getElementById('song-title-input');
 const songArtistInput = document.getElementById('song-artist-input');
 const songAlbumInput = document.getElementById('song-album-input');
+const songTitleSuggestions = document.getElementById('song-title-suggestions');
+const songArtistSuggestions = document.getElementById('song-artist-suggestions');
+const songAlbumSuggestions = document.getElementById('song-album-suggestions');
 const keepArtistInput = document.getElementById('keep-artist');
 const keepAlbumInput = document.getElementById('keep-album');
 const songForm = document.getElementById('song-form');
@@ -19,11 +22,131 @@ const restartButton = document.getElementById('restart-button');
 const skipButton = document.getElementById('skip-button');
 
 const MAX_SONGS = 40;
+const AUTOCOMPLETE_MIN_CHARS = 2;
+const AUTOCOMPLETE_DEBOUNCE_MS = 250;
+const AUTOCOMPLETE_LIMIT = 8;
+const ITUNES_SEARCH_URL = 'https://itunes.apple.com/search';
 
 let songs = [];
 let rankedSongs = [];
 let currentIndex = 0;
 let compareState = null;
+
+function buildItunesSearchUrl(term, entity) {
+  const params = new URLSearchParams({
+    term,
+    entity,
+    limit: String(AUTOCOMPLETE_LIMIT),
+    media: 'music',
+  });
+  return `${ITUNES_SEARCH_URL}?${params.toString()}`;
+}
+
+function normalizeSuggestions(items) {
+  const seen = new Set();
+  const results = [];
+
+  items.forEach((item) => {
+    const value = typeof item === 'string' ? item.trim() : '';
+    if (!value || seen.has(value)) {
+      return;
+    }
+    seen.add(value);
+    results.push(value);
+  });
+
+  return results;
+}
+
+function updateDatalist(datalist, suggestions) {
+  datalist.innerHTML = '';
+  normalizeSuggestions(suggestions).forEach((value) => {
+    const option = document.createElement('option');
+    option.value = value;
+    datalist.appendChild(option);
+  });
+}
+
+function findExactMatch(results, query, getValue) {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) {
+    return null;
+  }
+
+  return (
+    results.find((result) => {
+      const value = getValue(result);
+      if (typeof value !== 'string') {
+        return false;
+      }
+      return value.trim().toLowerCase() === normalizedQuery;
+    }) ?? null
+  );
+}
+
+function setupAutocomplete({ input, datalist, entity, getValue, onSelect }) {
+  let debounceId = null;
+  let abortController = null;
+  let latestResults = [];
+
+  const clearSuggestions = () => {
+    latestResults = [];
+    updateDatalist(datalist, []);
+  };
+
+  const handleSelection = () => {
+    if (!onSelect || latestResults.length === 0) {
+      return;
+    }
+    const match = findExactMatch(latestResults, input.value, getValue);
+    if (match) {
+      onSelect(match);
+    }
+  };
+
+  const fetchSuggestions = async () => {
+    const term = input.value.trim();
+    if (term.length < AUTOCOMPLETE_MIN_CHARS) {
+      clearSuggestions();
+      return;
+    }
+
+    if (abortController) {
+      abortController.abort();
+    }
+    abortController = new AbortController();
+
+    try {
+      const response = await fetch(buildItunesSearchUrl(term, entity), {
+        signal: abortController.signal,
+      });
+
+      if (!response.ok) {
+        clearSuggestions();
+        return;
+      }
+
+      const data = await response.json();
+      const results = Array.isArray(data.results) ? data.results : [];
+      latestResults = results;
+      updateDatalist(datalist, results.map(getValue));
+      handleSelection();
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        clearSuggestions();
+      }
+    }
+  };
+
+  input.addEventListener('input', () => {
+    window.clearTimeout(debounceId);
+    debounceId = window.setTimeout(fetchSuggestions, AUTOCOMPLETE_DEBOUNCE_MS);
+    handleSelection();
+  });
+
+  input.addEventListener('change', handleSelection);
+  input.addEventListener('blur', handleSelection);
+}
 
 function formatSong(song) {
   const parts = [song.title, song.artist, song.album].filter(Boolean);
@@ -333,6 +456,40 @@ inputsForShortcut.forEach((input) => {
       startButton.click();
     }
   });
+});
+
+setupAutocomplete({
+  input: songTitleInput,
+  datalist: songTitleSuggestions,
+  entity: 'song',
+  getValue: (result) => result.trackName,
+  onSelect: (result) => {
+    if (result.artistName) {
+      songArtistInput.value = result.artistName;
+    }
+    if (result.collectionName) {
+      songAlbumInput.value = result.collectionName;
+    }
+  },
+});
+
+setupAutocomplete({
+  input: songArtistInput,
+  datalist: songArtistSuggestions,
+  entity: 'musicArtist',
+  getValue: (result) => result.artistName,
+});
+
+setupAutocomplete({
+  input: songAlbumInput,
+  datalist: songAlbumSuggestions,
+  entity: 'album',
+  getValue: (result) => result.collectionName,
+  onSelect: (result) => {
+    if (result.artistName) {
+      songArtistInput.value = result.artistName;
+    }
+  },
 });
 
 resetApp();

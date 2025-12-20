@@ -19,17 +19,20 @@
       <form id="song-form" class="song-form">
         <div class="song-form__fields">
           <div class="song-form__field">
-            <input id="song-title-input" type="text" placeholder="Song title" autocomplete="off" />
+            <input id="song-title-input" type="text" placeholder="Song title" autocomplete="off" list="song-title-suggestions" />
+            <datalist id="song-title-suggestions"></datalist>
           </div>
           <div class="song-form__field">
-            <input id="song-artist-input" type="text" placeholder="Artist" autocomplete="off" />
+            <input id="song-artist-input" type="text" placeholder="Artist" autocomplete="off" list="song-artist-suggestions" />
+            <datalist id="song-artist-suggestions"></datalist>
             <label class="song-form__keep">
               <input id="keep-artist" type="checkbox" />
               Keep artist
             </label>
           </div>
           <div class="song-form__field">
-            <input id="song-album-input" type="text" placeholder="Album" autocomplete="off" />
+            <input id="song-album-input" type="text" placeholder="Album" autocomplete="off" list="song-album-suggestions" />
+            <datalist id="song-album-suggestions"></datalist>
             <label class="song-form__keep">
               <input id="keep-album" type="checkbox" />
               Keep album

@@ -19,6 +19,7 @@ const optionLeft = document.getElementById('option-left');
 const optionRight = document.getElementById('option-right');
 const resultsList = document.getElementById('results-list');
 const restartButton = document.getElementById('restart-button');
+const newListButton = document.getElementById('new-list-button');
 const skipButton = document.getElementById('skip-button');
 
 const MAX_SONGS = 40;
@@ -347,6 +348,16 @@ function resetApp() {
   songTitleInput.focus();
 }
 
+function resetRanking() {
+  rankedSongs = [];
+  currentIndex = 0;
+  compareState = null;
+  progressText.textContent = '';
+  syncInputState();
+  showPanel('input');
+  songTitleInput.focus();
+}
+
 function showPanel(panel) {
   inputPanel.classList.toggle('panel--hidden', panel !== 'input');
   rankingPanel.classList.toggle('panel--hidden', panel !== 'ranking');
@@ -445,8 +456,9 @@ optionLeft.addEventListener('click', () => handleChoice(true));
 optionRight.addEventListener('click', () => handleChoice(false));
 
 songForm.addEventListener('submit', handleAddSong);
-restartButton.addEventListener('click', resetApp);
-skipButton.addEventListener('click', resetApp);
+restartButton.addEventListener('click', resetRanking);
+newListButton.addEventListener('click', resetApp);
+skipButton.addEventListener('click', resetRanking);
 
 // Allow pressing Enter + Ctrl/Cmd to start ranking quickly.
 const inputsForShortcut = [songTitleInput, songArtistInput, songAlbumInput];

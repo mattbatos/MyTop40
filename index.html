@@ -18,7 +18,23 @@
       <p>Add songs one at a time. Include the artist name if you want to spot duplicates.</p>
       <form id="song-form" class="song-form">
         <div class="song-form__fields">
-          <input id="song-input" type="text" placeholder="Song Title - Artist" autocomplete="off" />
+          <div class="song-form__field">
+            <input id="song-title-input" type="text" placeholder="Song title" autocomplete="off" />
+          </div>
+          <div class="song-form__field">
+            <input id="song-artist-input" type="text" placeholder="Artist" autocomplete="off" />
+            <label class="song-form__keep">
+              <input id="keep-artist" type="checkbox" />
+              Keep artist
+            </label>
+          </div>
+          <div class="song-form__field">
+            <input id="song-album-input" type="text" placeholder="Album" autocomplete="off" />
+            <label class="song-form__keep">
+              <input id="keep-album" type="checkbox" />
+              Keep album
+            </label>
+          </div>
           <button id="add-button" type="submit" class="button">Add Song</button>
         </div>
       </form>

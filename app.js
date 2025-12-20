@@ -1,4 +1,8 @@
-const songInput = document.getElementById('song-input');
+const songTitleInput = document.getElementById('song-title-input');
+const songArtistInput = document.getElementById('song-artist-input');
+const songAlbumInput = document.getElementById('song-album-input');
+const keepArtistInput = document.getElementById('keep-artist');
+const keepAlbumInput = document.getElementById('keep-album');
 const songForm = document.getElementById('song-form');
 const addButton = document.getElementById('add-button');
 const startButton = document.getElementById('start-button');
@@ -21,6 +25,23 @@ let rankedSongs = [];
 let currentIndex = 0;
 let compareState = null;
 
+function formatSong(song) {
+  const parts = [song.title, song.artist, song.album].filter(Boolean);
+  return parts.join(' — ');
+}
+
+function isSongEmpty(song) {
+  return !song.title && !song.artist && !song.album;
+}
+
+function readSongInputs() {
+  return {
+    title: songTitleInput.value.trim(),
+    artist: songArtistInput.value.trim(),
+    album: songAlbumInput.value.trim(),
+  };
+}
+
 function syncInputState(customHint) {
   inputHint.textContent = customHint ?? `Added ${songs.length} of ${MAX_SONGS} songs.`;
   startButton.disabled = songs.length === 0;
@@ -36,11 +57,20 @@ function renderSongList() {
 
     const name = document.createElement('span');
     name.className = 'song-list__name';
-    name.textContent = song;
+    name.textContent = formatSong(song);
+
+    const actions = document.createElement('div');
+    actions.className = 'song-list__actions';
+
+    const editButton = document.createElement('button');
+    editButton.type = 'button';
+    editButton.className = 'song-list__button';
+    editButton.textContent = 'Edit';
+    editButton.addEventListener('click', () => startSongEdit(li, index));
 
     const removeButton = document.createElement('button');
     removeButton.type = 'button';
-    removeButton.className = 'song-list__remove';
+    removeButton.className = 'song-list__button';
     removeButton.textContent = 'Remove';
     removeButton.addEventListener('click', () => {
       songs.splice(index, 1);
@@ -49,38 +79,141 @@ function renderSongList() {
       songInput.focus();
     });
 
+    actions.appendChild(editButton);
+    actions.appendChild(removeButton);
+
     li.appendChild(name);
-    li.appendChild(removeButton);
+    li.appendChild(actions);
     songList.appendChild(li);
   });
+}
+
+function startSongEdit(listItem, songIndex) {
+  const nameElement = listItem.querySelector('.song-list__name');
+  const actions = listItem.querySelector('.song-list__actions');
+
+  if (!nameElement || !actions) {
+    return;
+  }
+
+  const editFields = document.createElement('div');
+  editFields.className = 'song-list__edit-fields';
+
+  const titleInput = document.createElement('input');
+  titleInput.type = 'text';
+  titleInput.placeholder = 'Song title';
+  titleInput.value = songs[songIndex].title ?? '';
+  titleInput.className = 'song-list__edit-input';
+
+  const artistInput = document.createElement('input');
+  artistInput.type = 'text';
+  artistInput.placeholder = 'Artist';
+  artistInput.value = songs[songIndex].artist ?? '';
+  artistInput.className = 'song-list__edit-input';
+
+  const albumInput = document.createElement('input');
+  albumInput.type = 'text';
+  albumInput.placeholder = 'Album';
+  albumInput.value = songs[songIndex].album ?? '';
+  albumInput.className = 'song-list__edit-input';
+
+  editFields.appendChild(titleInput);
+  editFields.appendChild(artistInput);
+  editFields.appendChild(albumInput);
+
+  listItem.replaceChild(editFields, nameElement);
+  actions.innerHTML = '';
+
+  const saveButton = document.createElement('button');
+  saveButton.type = 'button';
+  saveButton.className = 'song-list__button song-list__button--primary';
+  saveButton.textContent = 'Save';
+
+  const cancelButton = document.createElement('button');
+  cancelButton.type = 'button';
+  cancelButton.className = 'song-list__button';
+  cancelButton.textContent = 'Cancel';
+
+  const exitEditMode = () => {
+    renderSongList();
+    songInput.focus();
+  };
+
+  cancelButton.addEventListener('click', exitEditMode);
+
+  saveButton.addEventListener('click', () => {
+    const updatedSong = {
+      title: titleInput.value.trim(),
+      artist: artistInput.value.trim(),
+      album: albumInput.value.trim(),
+    };
+    if (isSongEmpty(updatedSong)) {
+      syncInputState('Enter at least one field before saving.');
+      titleInput.focus();
+      return;
+    }
+
+    songs[songIndex] = updatedSong;
+    renderSongList();
+    syncInputState();
+    songTitleInput.focus();
+  });
+
+  actions.appendChild(saveButton);
+  actions.appendChild(cancelButton);
+
+  const handleEditKeydown = (event) => {
+    if (event.key === 'Enter') {
+      saveButton.click();
+    } else if (event.key === 'Escape') {
+      exitEditMode();
+    }
+  };
+
+  titleInput.addEventListener('keydown', handleEditKeydown);
+  artistInput.addEventListener('keydown', handleEditKeydown);
+  albumInput.addEventListener('keydown', handleEditKeydown);
+
+  titleInput.focus();
+  titleInput.select();
 }
 
 function handleAddSong(event) {
   event.preventDefault();
 
-  const entry = songInput.value.trim();
+  const entry = readSongInputs();
 
-  if (entry.length === 0) {
-    syncInputState('Enter a song before adding.');
-    songInput.focus();
+  if (isSongEmpty(entry)) {
+    syncInputState('Enter at least one field before adding.');
+    songTitleInput.focus();
     return;
   }
 
   if (songs.length >= MAX_SONGS) {
     syncInputState('You can only rank up to 40 songs at a time.');
-    songInput.focus();
+    songTitleInput.focus();
     return;
   }
 
   songs.push(entry);
-  songInput.value = '';
+  songTitleInput.value = '';
+  if (!keepArtistInput.checked) {
+    songArtistInput.value = '';
+  }
+  if (!keepAlbumInput.checked) {
+    songAlbumInput.value = '';
+  }
   renderSongList();
   syncInputState();
-  songInput.focus();
+  songTitleInput.focus();
 }
 
 function resetApp() {
-  songInput.value = '';
+  songTitleInput.value = '';
+  songArtistInput.value = '';
+  songAlbumInput.value = '';
+  keepArtistInput.checked = false;
+  keepAlbumInput.checked = false;
   songs = [];
   rankedSongs = [];
   currentIndex = 0;
@@ -88,7 +221,7 @@ function resetApp() {
   renderSongList();
   syncInputState();
   showPanel('input');
-  songInput.focus();
+  songTitleInput.focus();
 }
 
 function showPanel(panel) {
@@ -128,8 +261,8 @@ function presentComparison() {
   const mid = Math.floor((compareState.low + compareState.high) / 2);
   compareState.mid = mid;
 
-  optionLeft.textContent = compareState.song;
-  optionRight.textContent = rankedSongs[mid];
+  optionLeft.textContent = formatSong(compareState.song);
+  optionRight.textContent = formatSong(rankedSongs[mid]);
   updateProgress();
 }
 
@@ -159,7 +292,7 @@ function showResults() {
   resultsList.innerHTML = '';
   rankedSongs.forEach((song) => {
     const li = document.createElement('li');
-    li.textContent = song;
+    li.textContent = formatSong(song);
     resultsList.appendChild(li);
   });
 }
@@ -193,10 +326,13 @@ restartButton.addEventListener('click', resetApp);
 skipButton.addEventListener('click', resetApp);
 
 // Allow pressing Enter + Ctrl/Cmd to start ranking quickly.
-songInput.addEventListener('keydown', (event) => {
-  if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
-    startButton.click();
-  }
+const inputsForShortcut = [songTitleInput, songArtistInput, songAlbumInput];
+inputsForShortcut.forEach((input) => {
+  input.addEventListener('keydown', (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+      startButton.click();
+    }
+  });
 });
 
 resetApp();

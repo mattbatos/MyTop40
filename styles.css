@@ -86,11 +86,19 @@ textarea:focus {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.song-form__field {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
 .song-form__fields input {
   flex: 1;
-  min-width: 220px;
   border-radius: 12px;
   border: 1px solid var(--border);
   padding: 0.75rem 1rem;
@@ -100,6 +108,23 @@ textarea:focus {
 .song-form__fields input:focus {
   outline: 3px solid color-mix(in srgb, var(--accent) 25%, transparent);
   border-color: var(--accent);
+}
+
+.song-form__keep {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: rgba(28, 31, 51, 0.7);
+  user-select: none;
+  min-height: 1.6rem;
+  width: fit-content;
+  align-self: flex-start;
+}
+
+.song-form__keep input {
+  margin: 0;
 }
 
 .song-list {
@@ -126,21 +151,58 @@ textarea:focus {
   font-weight: 500;
 }
 
-.song-list__remove {
+.song-list__actions {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.song-list__edit-fields {
+  flex: 1;
+  display: grid;
+  gap: 0.4rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.song-list__button {
   background: transparent;
   border: none;
   color: rgba(28, 31, 51, 0.7);
   cursor: pointer;
   font-size: 0.9rem;
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem 0.6rem;
   border-radius: 8px;
-  transition: background 120ms ease;
+  transition: background 120ms ease, color 120ms ease;
 }
 
-.song-list__remove:hover,
-.song-list__remove:focus-visible {
+.song-list__button:hover,
+.song-list__button:focus-visible {
   background: color-mix(in srgb, var(--accent) 10%, transparent);
   color: var(--accent);
+}
+
+.song-list__button--primary {
+  background: var(--accent);
+  color: white;
+}
+
+.song-list__button--primary:hover,
+.song-list__button--primary:focus-visible {
+  background: var(--accent-dark);
+  color: white;
+}
+
+.song-list__edit-input {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.6rem;
+  font-size: 0.95rem;
+}
+
+.song-list__edit-input:focus {
+  outline: 3px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-color: var(--accent);
 }
 
 .button {

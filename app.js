@@ -85,7 +85,25 @@ function findExactMatch(results, query, getValue) {
   );
 }
 
-function setupAutocomplete({ input, datalist, entity, getValue, onSelect }) {
+function buildSearchTerm(primary, extras) {
+  const seen = new Set();
+  return [primary, ...extras]
+    .map((value) => (typeof value === 'string' ? value.trim() : ''))
+    .filter((value) => {
+      if (!value) {
+        return false;
+      }
+      const key = value.toLowerCase();
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    })
+    .join(' ');
+}
+
+function setupAutocomplete({ input, datalist, entity, getValue, onSelect, getSearchTerm }) {
   let debounceId = null;
   let abortController = null;
   let latestResults = [];
@@ -123,8 +141,14 @@ function setupAutocomplete({ input, datalist, entity, getValue, onSelect }) {
   };
 
   const fetchSuggestions = async () => {
-    const term = input.value.trim();
-    if (term.length < AUTOCOMPLETE_MIN_CHARS) {
+    const rawTerm = input.value.trim();
+    if (rawTerm.length < AUTOCOMPLETE_MIN_CHARS) {
+      clearSuggestions();
+      return;
+    }
+
+    const term = typeof getSearchTerm === 'function' ? getSearchTerm() : rawTerm;
+    if (!term) {
       clearSuggestions();
       return;
     }
@@ -500,6 +524,8 @@ setupAutocomplete({
   datalist: songTitleSuggestions,
   entity: 'song',
   getValue: (result) => result.trackName,
+  getSearchTerm: () =>
+    buildSearchTerm(songTitleInput.value, [songArtistInput.value, songAlbumInput.value]),
   onSelect: (result) => {
     if (result.artistName) {
       songArtistInput.value = result.artistName;
@@ -515,6 +541,8 @@ setupAutocomplete({
   datalist: songArtistSuggestions,
   entity: 'musicArtist',
   getValue: (result) => result.artistName,
+  getSearchTerm: () =>
+    buildSearchTerm(songArtistInput.value, [songTitleInput.value, songAlbumInput.value]),
 });
 
 setupAutocomplete({
@@ -522,6 +550,8 @@ setupAutocomplete({
   datalist: songAlbumSuggestions,
   entity: 'album',
   getValue: (result) => result.collectionName,
+  getSearchTerm: () =>
+    buildSearchTerm(songAlbumInput.value, [songArtistInput.value, songTitleInput.value]),
   onSelect: (result) => {
     if (result.artistName) {
       songArtistInput.value = result.artistName;

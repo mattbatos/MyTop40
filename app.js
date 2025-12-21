@@ -90,6 +90,23 @@ function setupAutocomplete({ input, datalist, entity, getValue, onSelect }) {
   let abortController = null;
   let latestResults = [];
 
+  const isDatalistSelectionEvent = (event) => {
+    if (!event || typeof event.inputType !== 'string') {
+      return false;
+    }
+    return (
+      event.inputType === 'insertReplacementText' ||
+      event.inputType === 'insertFromDrop'
+    );
+  };
+
+  const hasExactOptionValue = (value) => {
+    if (!datalist) {
+      return false;
+    }
+    return Array.from(datalist.options).some((option) => option.value === value);
+  };
+
   const clearSuggestions = () => {
     latestResults = [];
     updateDatalist(datalist, []);
@@ -131,7 +148,6 @@ function setupAutocomplete({ input, datalist, entity, getValue, onSelect }) {
       const results = Array.isArray(data.results) ? data.results : [];
       latestResults = results;
       updateDatalist(datalist, results.map(getValue));
-      handleSelection();
     } catch (error) {
       if (error.name !== 'AbortError') {
         clearSuggestions();
@@ -139,14 +155,23 @@ function setupAutocomplete({ input, datalist, entity, getValue, onSelect }) {
     }
   };
 
-  input.addEventListener('input', () => {
+  input.addEventListener('input', (event) => {
     window.clearTimeout(debounceId);
     debounceId = window.setTimeout(fetchSuggestions, AUTOCOMPLETE_DEBOUNCE_MS);
-    handleSelection();
+
+    if (
+      isDatalistSelectionEvent(event) ||
+      (event?.data === null && hasExactOptionValue(input.value))
+    ) {
+      handleSelection();
+    }
   });
 
-  input.addEventListener('change', handleSelection);
-  input.addEventListener('blur', handleSelection);
+  input.addEventListener('change', () => {
+    if (hasExactOptionValue(input.value)) {
+      handleSelection();
+    }
+  });
 }
 
 function formatSong(song) {

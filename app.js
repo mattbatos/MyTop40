@@ -6,6 +6,8 @@ const songArtistSuggestions = document.getElementById('song-artist-suggestions')
 const songAlbumSuggestions = document.getElementById('song-album-suggestions');
 const keepArtistInput = document.getElementById('keep-artist');
 const keepAlbumInput = document.getElementById('keep-album');
+const albumArtContainer = document.getElementById('album-art');
+const albumArtImage = document.getElementById('album-art-image');
 const songForm = document.getElementById('song-form');
 const addButton = document.getElementById('add-button');
 const startButton = document.getElementById('start-button');
@@ -32,15 +34,77 @@ let songs = [];
 let rankedSongs = [];
 let currentIndex = 0;
 let compareState = null;
+let albumArtKey = '';
 
-function buildItunesSearchUrl(term, entity) {
+function buildItunesSearchUrl(term, entity, limit = AUTOCOMPLETE_LIMIT) {
   const params = new URLSearchParams({
     term,
     entity,
-    limit: String(AUTOCOMPLETE_LIMIT),
+    limit: String(limit),
     media: 'music',
   });
   return `${ITUNES_SEARCH_URL}?${params.toString()}`;
+}
+
+function buildAlbumArtKey(album, artist) {
+  return `${album.trim().toLowerCase()}|${artist.trim().toLowerCase()}`;
+}
+
+function buildAlbumArtAlt(album, artist) {
+  if (album && artist) {
+    return `Album art for ${album} by ${artist}.`;
+  }
+  if (album) {
+    return `Album art for ${album}.`;
+  }
+  return 'Album art preview.';
+}
+
+function getArtworkUrl(result) {
+  if (!result) {
+    return '';
+  }
+  const raw =
+    result.artworkUrl100 ||
+    result.artworkUrl60 ||
+    result.artworkUrl30 ||
+    '';
+  if (!raw) {
+    return '';
+  }
+  return raw.replace(/\/\d+x\d+bb(?=\.)/, '/300x300bb');
+}
+
+function clearAlbumArt() {
+  if (!albumArtContainer || !albumArtImage) {
+    return;
+  }
+  albumArtKey = '';
+  albumArtContainer.classList.remove('album-art--loaded');
+  albumArtImage.removeAttribute('src');
+  albumArtImage.alt = '';
+}
+
+function setAlbumArt(url, album, artist) {
+  if (!albumArtContainer || !albumArtImage || !url) {
+    clearAlbumArt();
+    return;
+  }
+  albumArtContainer.classList.add('album-art--loaded');
+  albumArtImage.src = url;
+  albumArtImage.alt = buildAlbumArtAlt(album, artist);
+}
+
+function setAlbumArtFromResult(result) {
+  const url = getArtworkUrl(result);
+  if (!url) {
+    clearAlbumArt();
+    return;
+  }
+  const album = result.collectionName || songAlbumInput.value.trim();
+  const artist = result.artistName || songArtistInput.value.trim();
+  albumArtKey = buildAlbumArtKey(album, artist);
+  setAlbumArt(url, album, artist);
 }
 
 function normalizeSuggestions(items) {
@@ -375,6 +439,7 @@ function handleAddSong(event) {
   }
   if (!keepAlbumInput.checked) {
     songAlbumInput.value = '';
+    clearAlbumArt();
   }
   renderSongList();
   syncInputState();
@@ -387,6 +452,7 @@ function resetApp() {
   songAlbumInput.value = '';
   keepArtistInput.checked = false;
   keepAlbumInput.checked = false;
+  clearAlbumArt();
   songs = [];
   rankedSongs = [];
   currentIndex = 0;
@@ -509,6 +575,23 @@ restartButton.addEventListener('click', resetRanking);
 newListButton.addEventListener('click', resetApp);
 skipButton.addEventListener('click', resetRanking);
 
+songAlbumInput.addEventListener('input', () => {
+  const albumValue = songAlbumInput.value.trim();
+  if (!albumValue) {
+    clearAlbumArt();
+    return;
+  }
+
+  if (!albumArtKey) {
+    return;
+  }
+
+  const currentKey = buildAlbumArtKey(albumValue, songArtistInput.value.trim());
+  if (currentKey !== albumArtKey) {
+    clearAlbumArt();
+  }
+});
+
 // Allow pressing Enter + Ctrl/Cmd to start ranking quickly.
 const inputsForShortcut = [songTitleInput, songArtistInput, songAlbumInput];
 inputsForShortcut.forEach((input) => {
@@ -533,6 +616,7 @@ setupAutocomplete({
     if (result.collectionName) {
       songAlbumInput.value = result.collectionName;
     }
+    setAlbumArtFromResult(result);
   },
 });
 
@@ -556,6 +640,7 @@ setupAutocomplete({
     if (result.artistName) {
       songArtistInput.value = result.artistName;
     }
+    setAlbumArtFromResult(result);
   },
 });
 

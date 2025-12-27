@@ -107,6 +107,16 @@ function setAlbumArtFromResult(result) {
   setAlbumArt(url, album, artist);
 }
 
+function getCurrentAlbumArtUrl() {
+  if (!albumArtContainer || !albumArtImage) {
+    return '';
+  }
+  if (!albumArtContainer.classList.contains('album-art--loaded')) {
+    return '';
+  }
+  return albumArtImage.getAttribute('src') || '';
+}
+
 function normalizeSuggestions(items) {
   const seen = new Set();
   const results = [];
@@ -267,6 +277,68 @@ function formatSong(song) {
   return parts.join(' — ');
 }
 
+function renderChoiceOption(button, song) {
+  if (!button || !song) {
+    return;
+  }
+
+  button.textContent = '';
+
+  const art = document.createElement('div');
+  art.className = 'choice__art';
+
+  const artUrl = typeof song.albumArtUrl === 'string' ? song.albumArtUrl : '';
+  if (artUrl) {
+    const img = document.createElement('img');
+    img.src = artUrl;
+    img.alt = buildAlbumArtAlt(song.album, song.artist);
+    img.loading = 'lazy';
+    art.appendChild(img);
+  } else {
+    const placeholder = document.createElement('span');
+    placeholder.className = 'choice__art-placeholder';
+    placeholder.textContent = 'No art';
+    art.appendChild(placeholder);
+  }
+
+  const label = document.createElement('span');
+  label.className = 'choice__text';
+  label.textContent = formatSong(song);
+
+  button.appendChild(art);
+  button.appendChild(label);
+}
+
+function createSongInfo(song) {
+  const info = document.createElement('div');
+  info.className = 'song-list__info';
+
+  const name = document.createElement('span');
+  name.className = 'song-list__name';
+  name.textContent = formatSong(song);
+
+  const art = document.createElement('div');
+  art.className = 'song-list__art';
+  const artUrl = typeof song.albumArtUrl === 'string' ? song.albumArtUrl : '';
+  if (artUrl) {
+    const img = document.createElement('img');
+    img.src = artUrl;
+    img.alt = buildAlbumArtAlt(song.album, song.artist);
+    img.loading = 'lazy';
+    art.appendChild(img);
+  } else {
+    const placeholder = document.createElement('span');
+    placeholder.className = 'song-list__art-placeholder';
+    placeholder.textContent = 'No art';
+    art.appendChild(placeholder);
+  }
+
+  info.appendChild(name);
+  info.appendChild(art);
+
+  return info;
+}
+
 function isSongEmpty(song) {
   return !song.title && !song.artist && !song.album;
 }
@@ -292,18 +364,8 @@ function renderSongList() {
     const li = document.createElement('li');
     li.className = 'song-list__item';
 
-    const name = document.createElement('span');
-    name.className = 'song-list__name';
-    name.textContent = formatSong(song);
-
     const actions = document.createElement('div');
     actions.className = 'song-list__actions';
-
-    const editButton = document.createElement('button');
-    editButton.type = 'button';
-    editButton.className = 'song-list__button';
-    editButton.textContent = 'Edit';
-    editButton.addEventListener('click', () => startSongEdit(li, index));
 
     const removeButton = document.createElement('button');
     removeButton.type = 'button';
@@ -316,109 +378,21 @@ function renderSongList() {
       songInput.focus();
     });
 
-    actions.appendChild(editButton);
     actions.appendChild(removeButton);
 
-    li.appendChild(name);
+    li.appendChild(createSongInfo(song));
     li.appendChild(actions);
     songList.appendChild(li);
   });
 }
 
-function startSongEdit(listItem, songIndex) {
-  const nameElement = listItem.querySelector('.song-list__name');
-  const actions = listItem.querySelector('.song-list__actions');
-
-  if (!nameElement || !actions) {
-    return;
-  }
-
-  const editFields = document.createElement('div');
-  editFields.className = 'song-list__edit-fields';
-
-  const titleInput = document.createElement('input');
-  titleInput.type = 'text';
-  titleInput.placeholder = 'Song title';
-  titleInput.value = songs[songIndex].title ?? '';
-  titleInput.className = 'song-list__edit-input';
-
-  const artistInput = document.createElement('input');
-  artistInput.type = 'text';
-  artistInput.placeholder = 'Artist';
-  artistInput.value = songs[songIndex].artist ?? '';
-  artistInput.className = 'song-list__edit-input';
-
-  const albumInput = document.createElement('input');
-  albumInput.type = 'text';
-  albumInput.placeholder = 'Album';
-  albumInput.value = songs[songIndex].album ?? '';
-  albumInput.className = 'song-list__edit-input';
-
-  editFields.appendChild(titleInput);
-  editFields.appendChild(artistInput);
-  editFields.appendChild(albumInput);
-
-  listItem.replaceChild(editFields, nameElement);
-  actions.innerHTML = '';
-
-  const saveButton = document.createElement('button');
-  saveButton.type = 'button';
-  saveButton.className = 'song-list__button song-list__button--primary';
-  saveButton.textContent = 'Save';
-
-  const cancelButton = document.createElement('button');
-  cancelButton.type = 'button';
-  cancelButton.className = 'song-list__button';
-  cancelButton.textContent = 'Cancel';
-
-  const exitEditMode = () => {
-    renderSongList();
-    songInput.focus();
-  };
-
-  cancelButton.addEventListener('click', exitEditMode);
-
-  saveButton.addEventListener('click', () => {
-    const updatedSong = {
-      title: titleInput.value.trim(),
-      artist: artistInput.value.trim(),
-      album: albumInput.value.trim(),
-    };
-    if (isSongEmpty(updatedSong)) {
-      syncInputState('Enter at least one field before saving.');
-      titleInput.focus();
-      return;
-    }
-
-    songs[songIndex] = updatedSong;
-    renderSongList();
-    syncInputState();
-    songTitleInput.focus();
-  });
-
-  actions.appendChild(saveButton);
-  actions.appendChild(cancelButton);
-
-  const handleEditKeydown = (event) => {
-    if (event.key === 'Enter') {
-      saveButton.click();
-    } else if (event.key === 'Escape') {
-      exitEditMode();
-    }
-  };
-
-  titleInput.addEventListener('keydown', handleEditKeydown);
-  artistInput.addEventListener('keydown', handleEditKeydown);
-  albumInput.addEventListener('keydown', handleEditKeydown);
-
-  titleInput.focus();
-  titleInput.select();
-}
-
 function handleAddSong(event) {
   event.preventDefault();
 
-  const entry = readSongInputs();
+  const entry = {
+    ...readSongInputs(),
+    albumArtUrl: getCurrentAlbumArtUrl(),
+  };
 
   if (isSongEmpty(entry)) {
     syncInputState('Enter at least one field before adding.');
@@ -510,8 +484,8 @@ function presentComparison() {
   const mid = Math.floor((compareState.low + compareState.high) / 2);
   compareState.mid = mid;
 
-  optionLeft.textContent = formatSong(compareState.song);
-  optionRight.textContent = formatSong(rankedSongs[mid]);
+  renderChoiceOption(optionLeft, compareState.song);
+  renderChoiceOption(optionRight, rankedSongs[mid]);
   updateProgress();
 }
 
@@ -541,7 +515,7 @@ function showResults() {
   resultsList.innerHTML = '';
   rankedSongs.forEach((song) => {
     const li = document.createElement('li');
-    li.textContent = formatSong(song);
+    li.appendChild(createSongInfo(song));
     resultsList.appendChild(li);
   });
 }

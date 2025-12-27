@@ -172,7 +172,6 @@ textarea:focus {
 .song-list__item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.75rem;
   padding: 0.5rem 0.75rem;
   border-radius: 12px;
@@ -180,9 +179,46 @@ textarea:focus {
   border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
+.song-list__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .song-list__name {
   flex: 1;
+  min-width: 0;
   font-weight: 500;
+}
+
+.song-list__art {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+  background: rgba(79, 70, 229, 0.12);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  color: rgba(28, 31, 51, 0.55);
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.song-list__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.song-list__art-placeholder {
+  padding: 0.25rem;
+  text-align: center;
 }
 
 .song-list__actions {
@@ -190,13 +226,6 @@ textarea:focus {
   gap: 0.25rem;
   flex-wrap: wrap;
   justify-content: flex-end;
-}
-
-.song-list__edit-fields {
-  flex: 1;
-  display: grid;
-  gap: 0.4rem;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }
 
 .song-list__button {
@@ -214,29 +243,6 @@ textarea:focus {
 .song-list__button:focus-visible {
   background: color-mix(in srgb, var(--accent) 10%, transparent);
   color: var(--accent);
-}
-
-.song-list__button--primary {
-  background: var(--accent);
-  color: white;
-}
-
-.song-list__button--primary:hover,
-.song-list__button--primary:focus-visible {
-  background: var(--accent-dark);
-  color: white;
-}
-
-.song-list__edit-input {
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  padding: 0.4rem 0.6rem;
-  font-size: 0.95rem;
-}
-
-.song-list__edit-input:focus {
-  outline: 3px solid color-mix(in srgb, var(--accent) 25%, transparent);
-  border-color: var(--accent);
 }
 
 .button {
@@ -318,12 +324,46 @@ textarea:focus {
   cursor: pointer;
   transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
   box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .choice__option:hover,
 .choice__option:focus-visible {
   transform: translateY(-2px);
   border-color: var(--accent);
+}
+
+.choice__art {
+  width: min(160px, 50vw);
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+  background: rgba(79, 70, 229, 0.12);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: rgba(28, 31, 51, 0.55);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.choice__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.choice__art-placeholder {
+  padding: 0.5rem;
+}
+
+.choice__text {
+  display: block;
 }
 
 .choice__label {
